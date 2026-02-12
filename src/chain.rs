@@ -148,6 +148,7 @@ impl Network {
         #[cfg(not(feature = "liquid"))]
         return vec![
             "mainnet".to_string(),
+            "bitcoin".to_string(),
             "testnet".to_string(),
             "testnet4".to_string(),
             "regtest".to_string(),
@@ -219,7 +220,7 @@ impl From<&str> for Network {
     fn from(network_name: &str) -> Self {
         match network_name {
             #[cfg(not(feature = "liquid"))]
-            "mainnet" => Network::Bitcoin,
+            "mainnet" | "bitcoin" => Network::Bitcoin,
             #[cfg(not(feature = "liquid"))]
             "testnet" => Network::Testnet,
             #[cfg(not(feature = "liquid"))]

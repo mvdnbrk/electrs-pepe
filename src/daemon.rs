@@ -93,6 +93,14 @@ fn block_from_value(value: Value) -> Result<Block> {
 fn tx_from_value(value: Value) -> Result<Transaction> {
     let tx_hex = value.as_str().chain_err(|| "non-string tx")?;
     let tx_bytes = Vec::from_hex(tx_hex).chain_err(|| "non-hex tx")?;
+    #[cfg(not(feature = "liquid"))]
+    {
+        let mut reader = &tx_bytes[..];
+        let tx = crate::chain::deserialize_pepe_tx(&mut reader)
+            .chain_err(|| format!("failed to parse tx {}", tx_hex))?;
+        Ok(tx)
+    }
+    #[cfg(feature = "liquid")]
     Ok(deserialize(&tx_bytes).chain_err(|| format!("failed to parse tx {}", tx_hex))?)
 }
 

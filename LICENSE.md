@@ -1,4 +1,7 @@
 Copyright (C) 2018, Roman Zeyde.
+Copyright (C) 2026, Mark van den Broek (Pepecoin port).
+
+This project is a port of Blockstream/electrs (https://github.com/Blockstream/electrs).
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

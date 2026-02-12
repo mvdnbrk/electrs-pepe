@@ -4,11 +4,11 @@ workspace = { members = ["electrs_macros"] }
 name = "electrs"
 version = "0.4.1-pepe"
 authors = ["Roman Zeyde <me@romanzey.de>"]
-description = "An efficient re-implementation of Electrum Server in Rust"
+description = "An efficient re-implementation of Electrum Server in Rust, ported to Pepecoin"
 license = "MIT"
-homepage = "https://github.com/blockstream/electrs"
-repository = "https://github.com/blockstream/electrs"
-keywords = ["bitcoin", "electrum", "server", "index", "database"]
+homepage = "https://github.com/mvdnbrk/electrs-pepe"
+repository = "https://github.com/mvdnbrk/electrs-pepe"
+keywords = ["pepecoin", "electrum", "server", "index", "database"]
 readme = "README.md"
 edition = "2018"
 default-run = "electrs"

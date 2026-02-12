@@ -1,7 +1,7 @@
 ## Installation
 
 Install [latest Rust](https://rustup.rs/) (1.31+),
-[latest Pepecoin Core](https://github.com/pepecoinppc/pepecoin) (0.16+)
+[latest Pepecoin Core](https://github.com/pepecoinppc/pepecoin) (1.1+)
 and a compatible Electrum wallet.
 
 Also, install the following packages (on Debian):

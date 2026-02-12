@@ -396,7 +396,7 @@ impl Daemon {
         info!("{:?}", network_info);
         if network_info.version < 16_00_00 {
             bail!(
-                "{} is not supported - please use pepecoind 0.16+",
+                "{} is not supported - please use pepecoind 1.1+",
                 network_info.subversion,
             )
         }

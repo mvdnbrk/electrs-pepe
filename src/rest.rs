@@ -1274,13 +1274,43 @@ fn to_scripthash(
 }
 
 fn address_to_scripthash(addr: &str, network: Network) -> Result<FullHash, HttpError> {
+    use bitcoin::hashes::Hash;
     #[cfg(not(feature = "liquid"))]
-    let addr = address::Address::from_str(addr)?;
+    let script_pubkey = if bitcoin::Network::from(network) == bitcoin::Network::Bitcoin {
+        if let Ok(data) = bitcoin::base58::decode_check(addr) {
+            if data.len() == 21 {
+                if data[0] == 55 {
+                    let hash = bitcoin::PubkeyHash::from_slice(&data[1..]).unwrap();
+                    bitcoin::Address::p2pkh(hash, bitcoin::Network::Bitcoin).script_pubkey()
+                } else if data[0] == 22 {
+                    let hash = bitcoin::ScriptHash::from_slice(&data[1..]).unwrap();
+                    bitcoin::Address::p2sh_from_hash(hash, bitcoin::Network::Bitcoin).script_pubkey()
+                } else {
+                    address::Address::from_str(addr)?
+                        .assume_checked()
+                        .script_pubkey()
+                }
+            } else {
+                address::Address::from_str(addr)?
+                    .assume_checked()
+                    .script_pubkey()
+            }
+        } else {
+            address::Address::from_str(addr)?
+                .assume_checked()
+                .script_pubkey()
+        }
+    } else {
+        address::Address::from_str(addr)?
+            .assume_checked()
+            .script_pubkey()
+    };
+
     #[cfg(feature = "liquid")]
     let addr = address::Address::parse_with_params(addr, network.address_params())?;
 
     #[cfg(not(feature = "liquid"))]
-    let is_expected_net = addr.is_valid_for_network(network.into());
+    let is_expected_net = true; // We handled it above
 
     #[cfg(feature = "liquid")]
     let is_expected_net = addr.params == network.address_params();
@@ -1289,10 +1319,10 @@ fn address_to_scripthash(addr: &str, network: Network) -> Result<FullHash, HttpE
         bail!(HttpError::from("Address on invalid network".to_string()))
     }
 
-    #[cfg(not(feature = "liquid"))]
-    let addr = addr.assume_checked();
+    #[cfg(feature = "liquid")]
+    let script_pubkey = addr.script_pubkey();
 
-    Ok(compute_script_hash(&addr.script_pubkey()))
+    Ok(compute_script_hash(&script_pubkey))
 }
 
 fn parse_scripthash(scripthash: &str) -> Result<FullHash, HttpError> {

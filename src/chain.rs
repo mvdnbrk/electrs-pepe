@@ -46,7 +46,10 @@ pub enum Network {
 impl Network {
     #[cfg(not(feature = "liquid"))]
     pub fn magic(self) -> u32 {
-        u32::from_le_bytes(BNetwork::from(self).magic().to_bytes())
+        match self {
+            Network::Bitcoin => 0xa4b8b8e4, // [0xe4, 0xb8, 0xb8, 0xa4] in LE
+            _ => u32::from_le_bytes(BNetwork::from(self).magic().to_bytes()),
+        }
     }
 
     #[cfg(feature = "liquid")]
@@ -123,7 +126,9 @@ pub fn genesis_hash(network: Network) -> BlockHash {
 pub fn bitcoin_genesis_hash(network: BNetwork) -> bitcoin::BlockHash {
     lazy_static! {
         static ref BITCOIN_GENESIS: bitcoin::BlockHash =
-            genesis_block(BNetwork::Bitcoin).block_hash();
+            "6926978583488737b9875e53381a806955dfa503893603417643b2f671c8907f"
+                .parse()
+                .unwrap();
         static ref TESTNET_GENESIS: bitcoin::BlockHash =
             genesis_block(BNetwork::Testnet).block_hash();
         static ref TESTNET4_GENESIS: bitcoin::BlockHash =

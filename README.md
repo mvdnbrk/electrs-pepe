@@ -1,34 +1,22 @@
-# Esplora - Electrs backend API
+# Pepecoin Esplora - Electrs backend API
 
-A block chain index engine and HTTP API written in Rust based on [romanz/electrs](https://github.com/romanz/electrs).
+A block chain index engine and HTTP API written in Rust, ported to Pepecoin based on [Blockstream/electrs](https://github.com/blockstream/electrs).
 
-Used as the backend for the [Esplora block explorer](https://github.com/Blockstream/esplora) powering [blockstream.info](https://blockstream.info/).
-
-API documentation [is available here](https://github.com/blockstream/esplora/blob/master/API.md).
-
-Documentation for the database schema and indexing process [is available here](doc/schema.md).
+Used as the backend for the Pepecoin Esplora block explorer.
 
 ### Installing & indexing
 
-Install Rust, Bitcoin Core (no `txindex` needed) and the `clang` and `cmake` packages, increase maximum number open files by `ulimit -n 100000` and then:
+Install Rust, Pepecoin Core (no `txindex` needed) and the `clang` and `cmake` packages, increase maximum number open files by `ulimit -n 100000` and then:
 
 ```bash
-$ git clone https://github.com/blockstream/electrs && cd electrs
-$ git checkout new-index
-$ cargo run --release --bin electrs -- -vvvv --daemon-dir ~/.bitcoin
-
-# Or for liquid:
-$ cargo run --features liquid --release --bin electrs -- -vvvv --network liquid --daemon-dir ~/.liquid
+$ git clone https://github.com/mvdnbrk/electrs-pepe && cd electrs-pepe
+$ git checkout pepecoin
+$ cargo run --release --bin electrs -- -vvvv --daemon-dir ~/.pepecoin
 ```
 
-See [electrs's original documentation](https://github.com/romanz/electrs/blob/master/doc/usage.md) for more detailed instructions.
-Note that our indexes are incompatible with electrs's and has to be created separately.
+Note that our indexes are incompatible with Bitcoin electrs's and must be created separately.
 
-The indexes require 610GB of storage after running compaction (as of June 2020), but you'll need to have
-free space of about double that available during the index compaction process.
 Creating the indexes should take a few hours on a beefy machine with SSD.
-
-To deploy with Docker, follow the [instructions here](https://github.com/Blockstream/esplora#how-to-build-the-docker-image).
 
 ### Light mode
 
@@ -37,12 +25,13 @@ by roughly 50% at the cost of slower and more expensive lookups.
 
 With this option set, raw transactions and metadata associated with blocks will not be kept in rocksdb
 (the `T`, `X` and `M` indexes),
-but instead queried from bitcoind on demand.
+but instead queried from pepecoind on demand.
 
 ### Notable changes from Electrs:
 
-- HTTP REST API in addition to the Electrum JSON-RPC protocol, with extended transaction information
-  (previous outputs, spending transactions, script asm and more).
+- Ported to Pepecoin (Magic bytes: `0xe4b8b8a4`, Genesis Hash: `6926978583488737b9875e53381a806955dfa503893603417643b2f671c8907f`).
+- Support for Pepecoin address prefixes (starting with `P`).
+- HTTP REST API in addition to the Electrum JSON-RPC protocol, with extended transaction information.
 
 - Extended indexes and database storage for improved performance under high load:
 
@@ -52,17 +41,16 @@ but instead queried from bitcoind on demand.
   - A map of blockhash to txids is kept in the database under the prefix `X`.
   - Block stats metadata (number of transactions, size and weight) is kept in the database under the prefix `M`.
 
-  With these new indexes, bitcoind is no longer queried to serve user requests and is only polled
+  With these new indexes, pepecoind is no longer queried to serve user requests and is only polled
   periodically for new blocks and for syncing the mempool.
-
-- Support for Liquid and other Elements-based networks, including CT, peg-in/out and multi-asset.
-  (requires enabling the `liquid` feature flag using `--features liquid`)
 
 ### CLI options
 
 In addition to electrs's original configuration options, a few new options are also available:
 
-- `--http-addr <addr:port>` - HTTP server address/port to listen on (default: `127.0.0.1:3000`).
+- `--http-addr <addr:port>` - HTTP server address/port to listen on (default: `127.0.0.1:3002`).
+- `--electrum-rpc-addr <addr:port>` - Electrum server address/port to listen on (default: `127.0.0.1:50002`).
+- `--daemon-rpc-addr <addr:port>` - Pepecoin daemon RPC address/port (default: `127.0.0.1:33873`).
 - `--lightmode` - enable light mode (see above)
 - `--cors <origins>` - origins allowed to make cross-site request (optional, defaults to none).
 - `--address-search` - enables the by-prefix address search index.

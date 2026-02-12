@@ -3,6 +3,7 @@ use crate::elements::ebcompact::*;
 #[cfg(feature = "liquid")]
 use elements::address as elements_address;
 
+use bitcoin::hashes::Hash;
 use crate::chain::{script, Network, Script, TxIn, TxOut};
 use script::Instruction::PushBytes;
 
@@ -27,8 +28,27 @@ pub trait ScriptToAddr {
 #[cfg(not(feature = "liquid"))]
 impl ScriptToAddr for bitcoin::Script {
     fn to_address_str(&self, network: Network) -> Option<String> {
-        bitcoin::Address::from_script(self, bitcoin::Network::from(network))
-            .map(|s| s.to_string())
+        let bnetwork = bitcoin::Network::from(network);
+        bitcoin::Address::from_script(self, bnetwork)
+            .map(|s| {
+                if bnetwork == bitcoin::Network::Bitcoin {
+                    if let Some(hash) = s.pubkey_hash() {
+                        let mut payload = [0u8; 21];
+                        payload[0] = 55;
+                        payload[1..].copy_from_slice(&hash.to_byte_array());
+                        bitcoin::base58::encode_check(&payload)
+                    } else if let Some(hash) = s.script_hash() {
+                        let mut payload = [0u8; 21];
+                        payload[0] = 22;
+                        payload[1..].copy_from_slice(&hash.to_byte_array());
+                        bitcoin::base58::encode_check(&payload)
+                    } else {
+                        s.to_string()
+                    }
+                } else {
+                    s.to_string()
+                }
+            })
             .ok()
     }
 }

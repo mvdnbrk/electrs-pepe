@@ -115,19 +115,19 @@ impl Config {
             .arg(
                 Arg::with_name("daemon_dir")
                     .long("daemon-dir")
-                    .help("Data directory of Bitcoind (default: ~/.bitcoin/)")
+                    .help("Data directory of Pepecoind (default: ~/.pepecoin/)")
                     .takes_value(true),
             )
             .arg(
                 Arg::with_name("blocks_dir")
                     .long("blocks-dir")
-                    .help("Analogous to bitcoind's -blocksdir option, this specifies the directory containing the raw blocks files (blk*.dat) (default: ~/.bitcoin/blocks/)")
+                    .help("Analogous to pepecoind's -blocksdir option, this specifies the directory containing the raw blocks files (blk*.dat) (default: ~/.pepecoin/blocks/)")
                     .takes_value(true),
             )
             .arg(
                 Arg::with_name("cookie")
                     .long("cookie")
-                    .help("JSONRPC authentication cookie ('USER:PASSWORD', default: read from ~/.bitcoin/.cookie)")
+                    .help("JSONRPC authentication cookie ('USER:PASSWORD', default: read from ~/.pepecoin/.cookie)")
                     .takes_value(true),
             )
             .arg(
@@ -151,7 +151,7 @@ impl Config {
             .arg(
                 Arg::with_name("daemon_rpc_addr")
                     .long("daemon-rpc-addr")
-                    .help("Bitcoin daemon JSONRPC 'addr:port' to connect (default: 127.0.0.1:8332 for mainnet, 127.0.0.1:18332 for testnet3 and 127.0.0.1:48332 for testnet4 and 127.0.0.1:18443 for regtest)")
+                    .help("Pepecoin daemon JSONRPC 'addr:port' to connect (default: 127.0.0.1:33873 for mainnet, 127.0.0.1:44873 for testnet and 127.0.0.1:18332 for regtest)")
                     .takes_value(true),
             )
             .arg(
@@ -163,7 +163,7 @@ impl Config {
             .arg(
                 Arg::with_name("monitoring_addr")
                     .long("monitoring-addr")
-                    .help("Prometheus monitoring 'addr:port' to listen on (default: 127.0.0.1:4224 for mainnet, 127.0.0.1:14224 for testnet3 and 127.0.0.1:44224 for testnet4 and 127.0.0.1:24224 for regtest)")
+                    .help("Prometheus monitoring 'addr:port' to listen on (default: 127.0.0.1:4224 for mainnet, 127.0.0.1:14224 for testnet and 127.0.0.1:24224 for regtest)")
                     .takes_value(true),
             )
             .arg(
@@ -320,7 +320,7 @@ impl Config {
 
         let default_daemon_port = match network_type {
             #[cfg(not(feature = "liquid"))]
-            Network::Bitcoin => 8332,
+            Network::Bitcoin => 33873,
             #[cfg(not(feature = "liquid"))]
             Network::Testnet => 18332,
             #[cfg(not(feature = "liquid"))]
@@ -337,7 +337,7 @@ impl Config {
         };
         let default_electrum_port = match network_type {
             #[cfg(not(feature = "liquid"))]
-            Network::Bitcoin => 50001,
+            Network::Bitcoin => 50002,
             #[cfg(not(feature = "liquid"))]
             Network::Testnet => 60001,
             #[cfg(not(feature = "liquid"))]
@@ -356,7 +356,7 @@ impl Config {
         };
         let default_http_port = match network_type {
             #[cfg(not(feature = "liquid"))]
-            Network::Bitcoin => 3000,
+            Network::Bitcoin => 3002,
             #[cfg(not(feature = "liquid"))]
             Network::Testnet => 3001,
             #[cfg(not(feature = "liquid"))]
@@ -424,7 +424,7 @@ impl Config {
             .map(PathBuf::from)
             .unwrap_or_else(|| {
                 let mut default_dir = home_dir().expect("no homedir");
-                default_dir.push(".bitcoin");
+                default_dir.push(".pepecoin");
                 default_dir
             });
 

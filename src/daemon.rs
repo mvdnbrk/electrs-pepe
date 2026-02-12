@@ -382,7 +382,7 @@ impl Daemon {
         info!("{:?}", network_info);
         if network_info.version < 16_00_00 {
             bail!(
-                "{} is not supported - please use bitcoind 0.16+",
+                "{} is not supported - please use pepecoind 0.16+",
                 network_info.subversion,
             )
         }
@@ -399,7 +399,7 @@ impl Daemon {
             }
 
             warn!(
-                "waiting for bitcoind sync to finish: {}/{} blocks, verification progress: {:.3}%",
+                "waiting for pepecoind sync to finish: {}/{} blocks, verification progress: {:.3}%",
                 info.blocks,
                 info.headers,
                 info.verificationprogress * 100.0

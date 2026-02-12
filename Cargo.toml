@@ -2,7 +2,7 @@ workspace = { members = ["electrs_macros"] }
 
 [package]
 name = "electrs"
-version = "0.4.1"
+version = "0.4.1-pepe"
 authors = ["Roman Zeyde <me@romanzey.de>"]
 description = "An efficient re-implementation of Electrum Server in Rust"
 license = "MIT"

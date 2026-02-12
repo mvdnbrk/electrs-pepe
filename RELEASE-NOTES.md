@@ -1,47 +1,11 @@
-# 0.4.1 (14 Oct 2018)
+# 0.4.1-pepe (12 Feb 2026)
 
-* Don't run full compaction after initial import is over (when using JSONRPC)
+* Ported to Pepecoin (Magic bytes: `0xe4b8b8a4`, Genesis Hash: `6926978583488737b9875e53381a806955dfa503893603417643b2f671c8907f`)
+* Added support for AuxPoW block headers and blocks using partial deserialization
+* Updated default ports for Pepecoin (RPC: 33873, Electrum: 50002, REST: 3002)
+* Updated default directory to `~/.pepecoin`
+* Support for Pepecoin address prefixes (`P` and `9`)
+* Updated documentation and CLI help for Pepecoin branding
 
-# 0.4.0 (22 Sep 2018)
-
-* Optimize for low-memory systems by using different RocksDB settings
-* Rename `--skip_bulk_import` flag to `--jsonrpc-import`
-
-# 0.3.2 (14 Sep 2018)
-
-* Optimize block headers processing during startup
-* Handle TCP disconnections during long RPCs
-* Use # of CPUs for bulk indexing threads
-* Update rust-bitcoin to 0.14
-* Optimize block headers processing during startup
-
-
-# 0.3.1 (20 Aug 2018)
-
-* Reconnect to bitcoind only on transient errors
-* Poll mempool after transaction broadcasting
-
-# 0.3.0 (14 Aug 2018)
-
-* Optimize for low-memory systems
-* Improve compaction performance
-* Handle disconnections from bitcoind by retrying
-* Make `blk*.dat` ingestion more robust
-* Support regtest network
-* Support more Electrum RPC methods
-* Export more Prometheus metrics (CPU, RAM, file descriptors)
-* Add `scripts/run.sh` for building and running `electrs`
-* Add some Python tools (as API usage examples)
-* Change default Prometheus monitoring ports
-
-# 0.2.0 (14 Jul 2018)
-
-* Allow specifying custom bitcoind data directory
-* Allow specifying JSONRPC cookie from commandline
-* Improve initial bulk indexing performance
-* Support 32-bit systems
-
-# 0.1.0 (2 Jul 2018)
-
-* Announcement: https://lists.linuxfoundation.org/pipermail/bitcoin-dev/2018-July/016190.html
-* Published to https://crates.io/electrs and https://docs.rs/electrs
+---
+*Note: This project was branched from Blockstream/electrs (Bitcoin). Previous release notes for the original project can be found in the git history.*

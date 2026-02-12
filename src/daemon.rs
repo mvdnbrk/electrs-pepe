@@ -16,7 +16,7 @@ use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterato
 use serde_json::{from_str, from_value, Value};
 
 #[cfg(not(feature = "liquid"))]
-use bitcoin::consensus::encode::{deserialize, serialize_hex};
+use bitcoin::consensus::encode::{deserialize, deserialize_partial, serialize_hex};
 #[cfg(feature = "liquid")]
 use elements::encode::{deserialize, serialize_hex};
 
@@ -64,6 +64,13 @@ fn header_from_value(value: Value) -> Result<BlockHeader> {
         .as_str()
         .chain_err(|| format!("non-string header: {}", value))?;
     let header_bytes = Vec::from_hex(header_hex).chain_err(|| "non-hex header")?;
+    #[cfg(not(feature = "liquid"))]
+    {
+        let (header, _): (BlockHeader, _) = deserialize_partial(&header_bytes)
+            .chain_err(|| format!("failed to parse header {}", header_hex))?;
+        Ok(header)
+    }
+    #[cfg(feature = "liquid")]
     Ok(
         deserialize(&header_bytes)
             .chain_err(|| format!("failed to parse header {}", header_hex))?,
@@ -73,6 +80,13 @@ fn header_from_value(value: Value) -> Result<BlockHeader> {
 fn block_from_value(value: Value) -> Result<Block> {
     let block_hex = value.as_str().chain_err(|| "non-string block")?;
     let block_bytes = Vec::from_hex(block_hex).chain_err(|| "non-hex block")?;
+    #[cfg(not(feature = "liquid"))]
+    {
+        let (block, _): (Block, _) = deserialize_partial(&block_bytes)
+            .chain_err(|| format!("failed to parse block {}", block_hex))?;
+        Ok(block)
+    }
+    #[cfg(feature = "liquid")]
     Ok(deserialize(&block_bytes).chain_err(|| format!("failed to parse block {}", block_hex))?)
 }
 

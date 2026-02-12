@@ -9,7 +9,7 @@ use itertools::Itertools;
 use rayon::prelude::*;
 
 #[cfg(not(feature = "liquid"))]
-use bitcoin::consensus::encode::{deserialize, serialize};
+use bitcoin::consensus::encode::{deserialize, deserialize_partial, serialize};
 #[cfg(feature = "liquid")]
 use elements::{
     confidential,
@@ -1155,6 +1155,13 @@ fn load_blockheaders(db: &DB) -> HashMap<BlockHash, BlockHeader> {
         .map(BlockRow::from_row)
         .map(|r| {
             let key: BlockHash = deserialize(&r.key.hash).expect("failed to parse BlockHash");
+            #[cfg(not(feature = "liquid"))]
+            let value: BlockHeader = {
+                let (header, _): (BlockHeader, _) =
+                    deserialize_partial(&r.value).expect("failed to parse BlockHeader");
+                header
+            };
+            #[cfg(feature = "liquid")]
             let value: BlockHeader = deserialize(&r.value).expect("failed to parse BlockHeader");
             (key, value)
         })

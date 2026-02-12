@@ -6,6 +6,52 @@ pub use bitcoin::{
     Transaction, TxIn, TxOut, Txid,
 };
 
+pub fn deserialize_pepe_block(bytes: &[u8]) -> Result<Block, bitcoin::consensus::encode::Error> {
+    use bitcoin::consensus::encode::Decodable;
+    use bitcoin::io::Read;
+
+    let mut reader = bytes;
+    let header = BlockHeader::consensus_decode(&mut reader)?;
+
+    if (header.version.to_consensus() & 0x100) != 0 {
+        // Skip AuxPoW
+        let _ = Transaction::consensus_decode(&mut reader)?;
+        let mut _hash = [0u8; 32];
+        reader.read_exact(&mut _hash)?;
+        let _ = Vec::<bitcoin::BlockHash>::consensus_decode(&mut reader)?;
+        let mut _idx = [0u8; 4];
+        reader.read_exact(&mut _idx)?;
+        let _ = Vec::<bitcoin::BlockHash>::consensus_decode(&mut reader)?;
+        let mut _cidx = [0u8; 4];
+        reader.read_exact(&mut _cidx)?;
+        let mut _hdr = [0u8; 80];
+        reader.read_exact(&mut _hdr)?;
+    }
+
+    let tx_count = bitcoin::VarInt::consensus_decode(&mut reader)?.0;
+    let mut txdata = Vec::with_capacity(tx_count as usize);
+    for _ in 0..tx_count {
+        txdata.push(deserialize_pepe_tx(&mut reader)?);
+    }
+    Ok(Block { header, txdata })
+}
+
+pub fn deserialize_pepe_tx<R: bitcoin::io::Read + ?Sized>(
+    reader: &mut R,
+) -> Result<Transaction, bitcoin::consensus::encode::Error> {
+    use bitcoin::consensus::encode::Decodable;
+    let version = bitcoin::transaction::Version::consensus_decode(reader)?;
+    let input = Vec::<bitcoin::TxIn>::consensus_decode(reader)?;
+    let output = Vec::<bitcoin::TxOut>::consensus_decode(reader)?;
+    let lock_time = bitcoin::locktime::absolute::LockTime::consensus_decode(reader)?;
+    Ok(Transaction {
+        version,
+        lock_time,
+        input,
+        output,
+    })
+}
+
 #[cfg(feature = "liquid")]
 pub use {
     crate::elements::asset,

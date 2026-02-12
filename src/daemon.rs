@@ -82,7 +82,7 @@ fn block_from_value(value: Value) -> Result<Block> {
     let block_bytes = Vec::from_hex(block_hex).chain_err(|| "non-hex block")?;
     #[cfg(not(feature = "liquid"))]
     {
-        let (block, _): (Block, _) = deserialize_partial(&block_bytes)
+        let block = crate::chain::deserialize_pepe_block(&block_bytes)
             .chain_err(|| format!("failed to parse block {}", block_hex))?;
         Ok(block)
     }

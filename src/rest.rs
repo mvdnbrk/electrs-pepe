@@ -1279,7 +1279,7 @@ fn address_to_scripthash(addr: &str, network: Network) -> Result<FullHash, HttpE
     let script_pubkey = if bitcoin::Network::from(network) == bitcoin::Network::Bitcoin {
         if let Ok(data) = bitcoin::base58::decode_check(addr) {
             if data.len() == 21 {
-                if data[0] == 55 {
+                if data[0] == 56 {
                     let hash = bitcoin::PubkeyHash::from_slice(&data[1..]).unwrap();
                     bitcoin::Address::p2pkh(hash, bitcoin::Network::Bitcoin).script_pubkey()
                 } else if data[0] == 22 {

@@ -34,7 +34,7 @@ impl ScriptToAddr for bitcoin::Script {
                 if bnetwork == bitcoin::Network::Bitcoin {
                     if let Some(hash) = s.pubkey_hash() {
                         let mut payload = [0u8; 21];
-                        payload[0] = 55;
+                        payload[0] = 56;
                         payload[1..].copy_from_slice(&hash.to_byte_array());
                         bitcoin::base58::encode_check(&payload)
                     } else if let Some(hash) = s.script_hash() {

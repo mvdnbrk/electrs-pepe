@@ -16,7 +16,7 @@ use rayon::iter::{IndexedParallelIterator, IntoParallelIterator, ParallelIterato
 use serde_json::{from_str, from_value, Value};
 
 #[cfg(not(feature = "liquid"))]
-use bitcoin::consensus::encode::{deserialize, deserialize_partial, serialize_hex};
+use bitcoin::consensus::encode::{deserialize_partial, serialize_hex};
 #[cfg(feature = "liquid")]
 use elements::encode::{deserialize, serialize_hex};
 

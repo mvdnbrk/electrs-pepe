@@ -4,7 +4,9 @@ A block chain index engine and HTTP API written in Rust, ported to Pepecoin base
 
 Used as the backend for the Pepecoin Esplora block explorer.
 
-### Installing & indexing
+API documentation [is available here](https://github.com/Blockstream/esplora/blob/master/API.md).
+
+Documentation for the database schema and indexing process [is available here](doc/schema.md).
 
 Install Rust, Pepecoin Core (no `txindex` needed) and the `clang` and `cmake` packages, increase maximum number open files by `ulimit -n 100000` and then:
 

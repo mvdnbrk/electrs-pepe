@@ -1215,13 +1215,14 @@ fn add_transaction(txid: Txid, tx: &Transaction, rows: &mut Vec<DBRow>, iconfig:
         rows.push(TxRow::new(txid, tx).into_row());
     }
 
+    let mut seen_spks = HashSet::new();
     let txid = full_hash(&txid[..]);
     for (txo_index, txo) in tx.output.iter().enumerate() {
         if is_spendable(txo) {
             rows.push(TxOutRow::new(&txid, txo_index, txo).into_row());
         }
 
-        if iconfig.address_search {
+        if iconfig.address_search && seen_spks.insert(&txo.script_pubkey) {
             if let Some(row) = addr_search_row(&txo.script_pubkey, iconfig.network) {
                 rows.push(row);
             }

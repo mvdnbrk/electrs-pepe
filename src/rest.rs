@@ -1347,21 +1347,18 @@ impl From<ParseIntError> for HttpError {
     }
 }
 impl From<HashError> for HttpError {
-    fn from(_e: HashError) -> Self {
-        //HttpError::from(e.description().to_string())
-        HttpError::from("Invalid hash string".to_string())
+    fn from(e: HashError) -> Self {
+        HttpError::from(format!("Invalid hash string: {}", e))
     }
 }
 impl From<hex::HexToBytesError> for HttpError {
-    fn from(_e: hex::HexToBytesError) -> Self {
-        //HttpError::from(e.description().to_string())
-        HttpError::from("Invalid hex string".to_string())
+    fn from(e: hex::HexToBytesError) -> Self {
+        HttpError::from(format!("Invalid hex string: {}", e))
     }
 }
 impl From<hex::HexToArrayError> for HttpError {
-    fn from(_e: hex::HexToArrayError) -> Self {
-        //HttpError::from(e.description().to_string())
-        HttpError::from("Invalid hex string".to_string())
+    fn from(e: hex::HexToArrayError) -> Self {
+        HttpError::from(format!("Invalid hex string: {}", e))
     }
 }
 impl From<errors::Error> for HttpError {

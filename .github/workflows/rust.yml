@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
-    - uses: dtolnay/rust-toolchain@1.75.0
+    - uses: dtolnay/rust-toolchain@stable
     - uses: Swatinem/rust-cache@v2
     - name: Run cargo check --all-targets
       run: cargo check --all-targets
@@ -24,7 +24,7 @@ jobs:
     steps:
     - run: sudo apt-get update && sudo apt-get install libfuse2
     - uses: actions/checkout@v4
-    - uses: dtolnay/rust-toolchain@1.75.0
+    - uses: dtolnay/rust-toolchain@stable
     - uses: Swatinem/rust-cache@v2
     - name: Run tests (REST+Electrum)
       run: RUST_LOG=debug cargo test
@@ -33,7 +33,7 @@ jobs:
     runs-on: ubuntu-22.04
     steps:
     - uses: actions/checkout@v4
-    - uses: dtolnay/rust-toolchain@1.75.0
+    - uses: dtolnay/rust-toolchain@stable
     - uses: Swatinem/rust-cache@v2
     - name: Run test test_electrum_raw
       run: RUST_LOG=debug cargo test -- --include-ignored test_electrum_raw

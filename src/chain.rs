@@ -15,9 +15,22 @@ pub fn deserialize_pepe_block(bytes: &[u8]) -> Result<Block, bitcoin::consensus:
 
     if (header.version.to_consensus() & 0x100) != 0 {
         // Skip AuxPoW
-        let _ = deserialize_pepe_tx(&mut reader)?;
+        let current_offset = bytes.len() - reader.len();
+        // Try standard decoding (supports SegWit if present in parent chain)
+        let res = Transaction::consensus_decode(&mut reader);
+        match res {
+            Ok(_) => {}
+            Err(bitcoin::consensus::encode::Error::UnsupportedSegwitFlag(_)) => {
+                // Fallback to legacy-only decoding if it looks like SegWit but isn't
+                let mut fallback_reader = &bytes[current_offset..];
+                let _ = deserialize_pepe_tx(&mut fallback_reader)?;
+                reader = fallback_reader; // sync main reader
+            }
+            Err(e) => return Err(e),
+        }
+
         let mut _hash = [0u8; 32];
-        bitcoin::io::Read::read_exact(&mut reader, &mut _hash)?;
+        reader.read_exact(&mut _hash)?;
         let _ = Vec::<bitcoin::BlockHash>::consensus_decode(&mut reader)?;
         let mut _idx = [0u8; 4];
         reader.read_exact(&mut _idx)?;

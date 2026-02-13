@@ -9,7 +9,7 @@ use itertools::Itertools;
 use rayon::prelude::*;
 
 #[cfg(not(feature = "liquid"))]
-use bitcoin::consensus::encode::{deserialize, deserialize_partial, serialize};
+use bitcoin::consensus::encode::{deserialize, serialize};
 #[cfg(feature = "liquid")]
 use elements::{
     confidential,

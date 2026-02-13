@@ -1286,16 +1286,13 @@ fn address_to_scripthash(addr: &str, network: Network) -> Result<FullHash, HttpE
                     let hash = bitcoin::ScriptHash::from_slice(&data[1..]).unwrap();
                     bitcoin::Address::p2sh_from_hash(hash, bitcoin::Network::Bitcoin).script_pubkey()
                 } else {
-                    address::Address::from_str(addr)?
-                        .assume_checked()
-                        .script_pubkey()
+                    return Err(HttpError::from("Invalid Pepecoin address prefix".to_string()));
                 }
             } else {
-                address::Address::from_str(addr)?
-                    .assume_checked()
-                    .script_pubkey()
+                return Err(HttpError::from("Invalid Pepecoin address length".to_string()));
             }
         } else {
+            // Might be SegWit or other format (if Pepecoin ever adds them)
             address::Address::from_str(addr)?
                 .assume_checked()
                 .script_pubkey()

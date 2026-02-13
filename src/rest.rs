@@ -606,6 +606,15 @@ impl Handle {
     }
 }
 
+fn parse_param<T: FromStr>(val: &str, name: &str) -> Result<T, HttpError>
+where
+    T::Err: std::fmt::Display,
+{
+    T::from_str(val).map_err(|e| {
+        HttpError::from(format!("Invalid {} '{}' (len {}): {}", name, val, val.len(), e))
+    })
+}
+
 #[trace]
 fn handle_request(
     method: Method,
@@ -658,7 +667,7 @@ fn handle_request(
             http_message(StatusCode::OK, header.hash().to_string(), ttl)
         }
         (&Method::GET, Some(&"block"), Some(hash), None, None, None) => {
-            let hash = BlockHash::from_str(hash)?;
+            let hash = parse_param(hash, "block hash")?;
             let blockhm = query
                 .chain()
                 .get_block_with_meta(&hash)
@@ -667,13 +676,13 @@ fn handle_request(
             json_response(block_value, TTL_LONG)
         }
         (&Method::GET, Some(&"block"), Some(hash), Some(&"status"), None, None) => {
-            let hash = BlockHash::from_str(hash)?;
+            let hash = parse_param(hash, "block hash")?;
             let status = query.chain().get_block_status(&hash);
             let ttl = ttl_by_depth(status.height, query);
             json_response(status, ttl)
         }
         (&Method::GET, Some(&"block"), Some(hash), Some(&"txids"), None, None) => {
-            let hash = BlockHash::from_str(hash)?;
+            let hash = parse_param(hash, "block hash")?;
             let txids = query
                 .chain()
                 .get_block_txids(&hash)
@@ -681,7 +690,7 @@ fn handle_request(
             json_response(txids, TTL_LONG)
         }
         (&Method::GET, Some(&"block"), Some(hash), Some(&"header"), None, None) => {
-            let hash = BlockHash::from_str(hash)?;
+            let hash = parse_param(hash, "block hash")?;
             let header = query
                 .chain()
                 .get_block_header(&hash)
@@ -691,7 +700,7 @@ fn handle_request(
             http_message(StatusCode::OK, header_hex, TTL_LONG)
         }
         (&Method::GET, Some(&"block"), Some(hash), Some(&"raw"), None, None) => {
-            let hash = BlockHash::from_str(hash)?;
+            let hash = parse_param(hash, "block hash")?;
             let raw = query
                 .chain()
                 .get_block_raw(&hash)
@@ -705,7 +714,7 @@ fn handle_request(
                 .unwrap())
         }
         (&Method::GET, Some(&"block"), Some(hash), Some(&"txid"), Some(index), None) => {
-            let hash = BlockHash::from_str(hash)?;
+            let hash = parse_param(hash, "block hash")?;
             let index: usize = index.parse()?;
             let txids = query
                 .chain()
@@ -717,7 +726,7 @@ fn handle_request(
             http_message(StatusCode::OK, txids[index].to_string(), TTL_LONG)
         }
         (&Method::GET, Some(&"block"), Some(hash), Some(&"txs"), start_index, None) => {
-            let hash = BlockHash::from_str(hash)?;
+            let hash = parse_param(hash, "block hash")?;
             let start_index = start_index
                 .map_or(0u32, |el| el.parse().unwrap_or(0))
                 .max(0u32) as usize;
@@ -888,7 +897,7 @@ fn handle_request(
             json_response(results, TTL_SHORT)
         }
         (&Method::GET, Some(&"tx"), Some(hash), None, None, None) => {
-            let hash = Txid::from_str(hash)?;
+            let hash = parse_param(hash, "transaction id")?;
             let tx = query
                 .lookup_txn(&hash)
                 .ok_or_else(|| HttpError::not_found("Transaction not found".to_string()))?;
@@ -901,7 +910,7 @@ fn handle_request(
         }
         (&Method::GET, Some(&"tx"), Some(hash), Some(out_type @ &"hex"), None, None)
         | (&Method::GET, Some(&"tx"), Some(hash), Some(out_type @ &"raw"), None, None) => {
-            let hash = Txid::from_str(hash)?;
+            let hash = parse_param(hash, "transaction id")?;
             let rawtx = query
                 .lookup_raw_txn(&hash)
                 .ok_or_else(|| HttpError::not_found("Transaction not found".to_string()))?;
@@ -921,14 +930,14 @@ fn handle_request(
                 .unwrap())
         }
         (&Method::GET, Some(&"tx"), Some(hash), Some(&"status"), None, None) => {
-            let hash = Txid::from_str(hash)?;
+            let hash = parse_param(hash, "transaction id")?;
             let status = query.get_tx_status(&hash);
             let ttl = ttl_by_depth(status.block_height, query);
             json_response(status, ttl)
         }
 
         (&Method::GET, Some(&"tx"), Some(hash), Some(&"merkle-proof"), None, None) => {
-            let hash = Txid::from_str(hash)?;
+            let hash = parse_param(hash, "transaction id")?;
             let blockid = query.chain().tx_confirming_block(&hash).ok_or_else(|| {
                 HttpError::not_found("Transaction not found or is unconfirmed".to_string())
             })?;
@@ -943,7 +952,7 @@ fn handle_request(
         }
         #[cfg(not(feature = "liquid"))]
         (&Method::GET, Some(&"tx"), Some(hash), Some(&"merkleblock-proof"), None, None) => {
-            let hash = Txid::from_str(hash)?;
+            let hash = parse_param(hash, "transaction id")?;
 
             let merkleblock = query.chain().get_merkleblock_proof(&hash).ok_or_else(|| {
                 HttpError::not_found("Transaction not found or is unconfirmed".to_string())
@@ -960,7 +969,7 @@ fn handle_request(
             )
         }
         (&Method::GET, Some(&"tx"), Some(hash), Some(&"outspend"), Some(index), None) => {
-            let hash = Txid::from_str(hash)?;
+            let hash = parse_param(hash, "transaction id")?;
             let outpoint = OutPoint {
                 txid: hash,
                 vout: index.parse::<u32>()?,
@@ -978,7 +987,7 @@ fn handle_request(
             json_response(spend, ttl)
         }
         (&Method::GET, Some(&"tx"), Some(hash), Some(&"outspends"), None, None) => {
-            let hash = Txid::from_str(hash)?;
+            let hash = parse_param(hash, "transaction id")?;
             let tx = query
                 .lookup_txn(&hash)
                 .ok_or_else(|| HttpError::not_found("Transaction not found".to_string()))?;

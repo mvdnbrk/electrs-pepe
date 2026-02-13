@@ -55,6 +55,20 @@ pub fn deserialize_pepe_block(
     Ok(Block { header, txdata })
 }
 
+pub fn deserialize_pepe_header(
+    bytes: &[u8],
+    network: Network,
+) -> Result<BlockHeader, bitcoin::consensus::encode::Error> {
+    use bitcoin::consensus::encode::Decodable;
+
+    if network != Network::Bitcoin {
+        return bitcoin::consensus::encode::deserialize(bytes);
+    }
+
+    let mut reader = bytes;
+    BlockHeader::consensus_decode(&mut reader)
+}
+
 pub fn deserialize_pepe_tx<R: bitcoin::io::Read + ?Sized>(
     reader: &mut R,
     network: Network,

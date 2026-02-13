@@ -1170,11 +1170,8 @@ fn load_blockheaders(db: &DB, network: Network) -> HashMap<BlockHash, BlockHeade
         .map(|r| {
             let key: BlockHash = deserialize(&r.key.hash).expect("failed to parse BlockHash");
             #[cfg(not(feature = "liquid"))]
-            let value: BlockHeader = {
-                let block =
-                    crate::chain::deserialize_pepe_block(&r.value, network).expect("failed to parse BlockHeader");
-                block.header
-            };
+            let value: BlockHeader =
+                crate::chain::deserialize_pepe_header(&r.value, network).expect("failed to parse BlockHeader");
             #[cfg(feature = "liquid")]
             let value: BlockHeader = deserialize(&r.value).expect("failed to parse BlockHeader");
             (key, value)

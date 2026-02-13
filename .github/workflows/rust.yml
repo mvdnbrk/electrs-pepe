@@ -44,3 +44,36 @@ jobs:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@main
       - run: nix build .
+
+  release:
+    name: Release Binary
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    if: startsWith(github.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Install dependencies (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        run: sudo apt-get update && sudo apt-get install -y cmake clang
+      - name: Build
+        run: cargo build --release --bin electrs
+      - name: Package
+        shell: bash
+        run: |
+          cd target/release
+          if [ "${{ matrix.os }}" = "ubuntu-latest" ]; then
+            tar -czf electrs-pepe-linux.tar.gz electrs
+          else
+            tar -czf electrs-pepe-macos.tar.gz electrs
+          fi
+      - name: Upload Release Assets
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            target/release/electrs-pepe-linux.tar.gz
+            target/release/electrs-pepe-macos.tar.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

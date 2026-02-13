@@ -4,7 +4,7 @@
 * Added support for AuxPoW block headers and blocks using partial deserialization
 * Updated default ports for Pepecoin (RPC: 33873, Electrum: 50002, REST: 3002)
 * Updated default directory to `~/.pepecoin`
-* Support for Pepecoin address prefixes (`P` and `9`)
+* Support for Pepecoin address prefixes (`P`, Base58 prefix 56)
 * Updated documentation and CLI help for Pepecoin branding
 
 ---

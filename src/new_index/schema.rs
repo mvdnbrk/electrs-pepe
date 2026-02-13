@@ -981,13 +981,27 @@ impl ChainQuery {
         Ok(self
             .lookup_raw_txns(txids)?
             .into_iter()
-            .map(|rawtx| deserialize(&rawtx).expect("failed to parse Transaction"))
+            .map(|rawtx| {
+                #[cfg(not(feature = "liquid"))]
+                {
+                    let mut reader = &rawtx[..];
+                    crate::chain::deserialize_pepe_tx(&mut reader).expect("failed to parse Transaction")
+                }
+                #[cfg(feature = "liquid")]
+                deserialize(&rawtx).expect("failed to parse Transaction")
+            })
             .collect())
     }
 
     pub fn lookup_txn(&self, txid: &Txid, blockhash: Option<&BlockHash>) -> Option<Transaction> {
         let _timer = self.start_timer("lookup_txn");
         let rawtx = self.lookup_raw_txn(txid, blockhash)?;
+        #[cfg(not(feature = "liquid"))]
+        {
+            let mut reader = &rawtx[..];
+            Some(crate::chain::deserialize_pepe_tx(&mut reader).expect("failed to parse Transaction"))
+        }
+        #[cfg(feature = "liquid")]
         Some(deserialize(&rawtx).expect("failed to parse Transaction"))
     }
 

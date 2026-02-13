@@ -15,9 +15,9 @@ pub fn deserialize_pepe_block(bytes: &[u8]) -> Result<Block, bitcoin::consensus:
 
     if (header.version.to_consensus() & 0x100) != 0 {
         // Skip AuxPoW
-        let _ = Transaction::consensus_decode(&mut reader)?;
+        let _ = deserialize_pepe_tx(&mut reader)?;
         let mut _hash = [0u8; 32];
-        reader.read_exact(&mut _hash)?;
+        bitcoin::io::Read::read_exact(&mut reader, &mut _hash)?;
         let _ = Vec::<bitcoin::BlockHash>::consensus_decode(&mut reader)?;
         let mut _idx = [0u8; 4];
         reader.read_exact(&mut _idx)?;

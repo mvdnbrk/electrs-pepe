@@ -16,7 +16,7 @@ use std::thread;
 
 use electrs_macros::trace;
 
-use crate::chain::{Block, BlockHash};
+use crate::chain::{Block, BlockHash, Network};
 use crate::daemon::Daemon;
 use crate::errors::*;
 use crate::util::{spawn_thread, HeaderEntry, SyncChannel};
@@ -33,11 +33,12 @@ pub fn start_fetcher(
     daemon: &Daemon,
     new_headers: Vec<HeaderEntry>,
 ) -> Result<Fetcher<Vec<BlockEntry>>> {
+    let network = daemon.network();
     let fetcher = match from {
         FetchFrom::Bitcoind => bitcoind_fetcher,
         FetchFrom::BlkFiles => blkfiles_fetcher,
     };
-    fetcher(daemon, new_headers)
+    fetcher(daemon, new_headers, network)
 }
 
 #[derive(Clone)]
@@ -74,6 +75,7 @@ impl<T> Fetcher<T> {
 fn bitcoind_fetcher(
     daemon: &Daemon,
     new_headers: Vec<HeaderEntry>,
+    _network: Network,
 ) -> Result<Fetcher<Vec<BlockEntry>>> {
     if let Some(tip) = new_headers.last() {
         debug!("{:?} ({} left to index)", tip, new_headers.len());
@@ -126,6 +128,7 @@ fn bitcoind_fetcher(
 fn blkfiles_fetcher(
     daemon: &Daemon,
     new_headers: Vec<HeaderEntry>,
+    network: Network,
 ) -> Result<Fetcher<Vec<BlockEntry>>> {
     let magic = daemon.magic();
     let blk_files = daemon.list_blk_files()?;
@@ -137,7 +140,7 @@ fn blkfiles_fetcher(
     let mut entry_map: HashMap<BlockHash, HeaderEntry> =
         new_headers.into_iter().map(|h| (*h.hash(), h)).collect();
 
-    let parser = blkfiles_parser(blkfiles_reader(blk_files, xor_key), magic);
+    let parser = blkfiles_parser(blkfiles_reader(blk_files, xor_key), magic, network);
     Ok(Fetcher::from(
         chan.into_receiver(),
         spawn_thread("blkfiles_fetcher", move || {
@@ -217,7 +220,7 @@ fn blkfile_apply_xor_key(xor_key: [u8; 8], blob: &mut [u8]) {
 }
 
 #[trace]
-fn blkfiles_parser(blobs: Fetcher<Vec<u8>>, magic: u32) -> Fetcher<Vec<SizedBlock>> {
+fn blkfiles_parser(blobs: Fetcher<Vec<u8>>, magic: u32, network: Network) -> Fetcher<Vec<SizedBlock>> {
     let chan = SyncChannel::new(1);
     let sender = chan.sender();
 
@@ -226,7 +229,7 @@ fn blkfiles_parser(blobs: Fetcher<Vec<u8>>, magic: u32) -> Fetcher<Vec<SizedBloc
         spawn_thread("blkfiles_parser", move || {
             blobs.map(|blob| {
                 trace!("parsing {} bytes", blob.len());
-                let blocks = parse_blocks(blob, magic).expect("failed to parse blk*.dat file");
+                let blocks = parse_blocks(blob, magic, network).expect("failed to parse blk*.dat file");
                 sender
                     .send(blocks)
                     .expect("failed to send blocks from blk*.dat file");
@@ -236,7 +239,7 @@ fn blkfiles_parser(blobs: Fetcher<Vec<u8>>, magic: u32) -> Fetcher<Vec<SizedBloc
 }
 
 #[trace]
-fn parse_blocks(blob: Vec<u8>, magic: u32) -> Result<Vec<SizedBlock>> {
+fn parse_blocks(blob: Vec<u8>, magic: u32, network: Network) -> Result<Vec<SizedBlock>> {
     let mut cursor = Cursor::new(&blob);
     let mut slices = vec![];
     let max_pos = blob.len() as u64;
@@ -285,7 +288,7 @@ fn parse_blocks(blob: Vec<u8>, magic: u32) -> Result<Vec<SizedBlock>> {
                 #[cfg(not(feature = "liquid"))]
                 {
                     let block =
-                        crate::chain::deserialize_pepe_block(slice).expect("failed to parse Block");
+                        crate::chain::deserialize_pepe_block(slice, network).expect("failed to parse Block");
                     (block, size)
                 }
                 #[cfg(feature = "liquid")]

@@ -77,12 +77,12 @@ fn header_from_value(value: Value) -> Result<BlockHeader> {
     )
 }
 
-fn block_from_value(value: Value) -> Result<Block> {
+fn block_from_value(value: Value, network: Network) -> Result<Block> {
     let block_hex = value.as_str().chain_err(|| "non-string block")?;
     let block_bytes = Vec::from_hex(block_hex).chain_err(|| "non-hex block")?;
     #[cfg(not(feature = "liquid"))]
     {
-        let block = crate::chain::deserialize_pepe_block(&block_bytes)
+        let block = crate::chain::deserialize_pepe_block(&block_bytes, network)
             .chain_err(|| format!("failed to parse block {}", block_hex))?;
         Ok(block)
     }
@@ -90,13 +90,13 @@ fn block_from_value(value: Value) -> Result<Block> {
     Ok(deserialize(&block_bytes).chain_err(|| format!("failed to parse block {}", block_hex))?)
 }
 
-fn tx_from_value(value: Value) -> Result<Transaction> {
+fn tx_from_value(value: Value, network: Network) -> Result<Transaction> {
     let tx_hex = value.as_str().chain_err(|| "non-string tx")?;
     let tx_bytes = Vec::from_hex(tx_hex).chain_err(|| "non-hex tx")?;
     #[cfg(not(feature = "liquid"))]
     {
         let mut reader = &tx_bytes[..];
-        let tx = crate::chain::deserialize_pepe_tx(&mut reader)
+        let tx = crate::chain::deserialize_pepe_tx(&mut reader, network)
             .chain_err(|| format!("failed to parse tx {}", tx_hex))?;
         Ok(tx)
     }
@@ -482,6 +482,10 @@ impl Daemon {
         self.network.magic()
     }
 
+    pub fn network(&self) -> Network {
+        self.network
+    }
+
     #[trace]
     fn call_jsonrpc(&self, method: &str, request: &Value) -> Result<Value> {
         let mut conn = self.conn.lock().unwrap();
@@ -613,7 +617,7 @@ impl Daemon {
     #[trace]
     pub fn getblock(&self, blockhash: &BlockHash) -> Result<Block> {
         let block =
-            block_from_value(self.request("getblock", json!([blockhash, /*verbose=*/ false]))?)?;
+            block_from_value(self.request("getblock", json!([blockhash, /*verbose=*/ false]))?, self.network)?;
         assert_eq!(block.block_hash(), *blockhash);
         Ok(block)
     }
@@ -653,7 +657,7 @@ impl Daemon {
         };
         let mut blocks = vec![];
         for value in values {
-            blocks.push(block_from_value(value)?);
+            blocks.push(block_from_value(value, self.network)?);
         }
         Ok(blocks)
     }
@@ -672,7 +676,7 @@ impl Daemon {
         self.requests_iter("getrawtransaction", params_list)
             .zip(txids)
             .filter_map(|(res, txid)| match res {
-                Ok(val) => Some(tx_from_value(val).map(|tx| (**txid, tx))),
+                Ok(val) => Some(tx_from_value(val, self.network).map(|tx| (**txid, tx))),
                 // Ignore 'tx not found' errors
                 Err(Error(ErrorKind::RpcError(code, _, _), _))
                     if code == RPC_INVALID_ADDRESS_OR_KEY =>
@@ -698,7 +702,7 @@ impl Daemon {
     #[trace]
     pub fn getmempooltx(&self, txhash: &Txid) -> Result<Transaction> {
         let value = self.request("getrawtransaction", json!([txhash, /*verbose=*/ false]))?;
-        tx_from_value(value)
+        tx_from_value(value, self.network)
     }
 
     #[trace]

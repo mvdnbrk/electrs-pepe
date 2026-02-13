@@ -78,7 +78,7 @@ impl Store {
 
         let headers = if let Some(tip_hash) = txstore_db.get(b"t") {
             let mut tip_hash = deserialize(&tip_hash).expect("invalid chain tip in `t`");
-            let headers_map = load_blockheaders(&txstore_db);
+            let headers_map = load_blockheaders(&txstore_db, config.network_type);
 
             // Move the tip back until we reach a block that is indexed in the history db.
             // It is possible for the tip recorded under the db "t" key to be un-indexed if electrs
@@ -985,7 +985,7 @@ impl ChainQuery {
                 #[cfg(not(feature = "liquid"))]
                 {
                     let mut reader = &rawtx[..];
-                    crate::chain::deserialize_pepe_tx(&mut reader).expect("failed to parse Transaction")
+                    crate::chain::deserialize_pepe_tx(&mut reader, self.network).expect("failed to parse Transaction")
                 }
                 #[cfg(feature = "liquid")]
                 deserialize(&rawtx).expect("failed to parse Transaction")
@@ -999,7 +999,7 @@ impl ChainQuery {
         #[cfg(not(feature = "liquid"))]
         {
             let mut reader = &rawtx[..];
-            Some(crate::chain::deserialize_pepe_tx(&mut reader).expect("failed to parse Transaction"))
+            Some(crate::chain::deserialize_pepe_tx(&mut reader, self.network).expect("failed to parse Transaction"))
         }
         #[cfg(feature = "liquid")]
         Some(deserialize(&rawtx).expect("failed to parse Transaction"))
@@ -1164,16 +1164,16 @@ fn load_blockhashes(db: &DB, prefix: &[u8]) -> HashSet<BlockHash> {
         .collect()
 }
 
-fn load_blockheaders(db: &DB) -> HashMap<BlockHash, BlockHeader> {
+fn load_blockheaders(db: &DB, network: Network) -> HashMap<BlockHash, BlockHeader> {
     db.iter_scan(&BlockRow::header_filter())
         .map(BlockRow::from_row)
         .map(|r| {
             let key: BlockHash = deserialize(&r.key.hash).expect("failed to parse BlockHash");
             #[cfg(not(feature = "liquid"))]
             let value: BlockHeader = {
-                let (header, _): (BlockHeader, _) =
-                    deserialize_partial(&r.value).expect("failed to parse BlockHeader");
-                header
+                let block =
+                    crate::chain::deserialize_pepe_block(&r.value, network).expect("failed to parse BlockHeader");
+                block.header
             };
             #[cfg(feature = "liquid")]
             let value: BlockHeader = deserialize(&r.value).expect("failed to parse BlockHeader");

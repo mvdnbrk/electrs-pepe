@@ -5,9 +5,16 @@ pub use bitcoin::{
     Transaction, TxIn, TxOut, Txid,
 };
 
-pub fn deserialize_pepe_block(bytes: &[u8]) -> Result<Block, bitcoin::consensus::encode::Error> {
+pub fn deserialize_pepe_block(
+    bytes: &[u8],
+    network: Network,
+) -> Result<Block, bitcoin::consensus::encode::Error> {
     use bitcoin::consensus::encode::Decodable;
     use bitcoin::io::Read;
+
+    if network != Network::Bitcoin {
+        return bitcoin::consensus::encode::deserialize(bytes);
+    }
 
     let mut reader = bytes;
     let header = BlockHeader::consensus_decode(&mut reader)?;
@@ -22,7 +29,7 @@ pub fn deserialize_pepe_block(bytes: &[u8]) -> Result<Block, bitcoin::consensus:
             Err(bitcoin::consensus::encode::Error::UnsupportedSegwitFlag(_)) => {
                 // Fallback to legacy-only decoding if it looks like SegWit but isn't
                 let mut fallback_reader = &bytes[current_offset..];
-                let _ = deserialize_pepe_tx(&mut fallback_reader)?;
+                let _ = deserialize_pepe_tx(&mut fallback_reader, network)?;
                 reader = fallback_reader; // sync main reader
             }
             Err(e) => return Err(e),
@@ -43,15 +50,21 @@ pub fn deserialize_pepe_block(bytes: &[u8]) -> Result<Block, bitcoin::consensus:
     let tx_count = bitcoin::VarInt::consensus_decode(&mut reader)?.0;
     let mut txdata = Vec::with_capacity(tx_count as usize);
     for _ in 0..tx_count {
-        txdata.push(deserialize_pepe_tx(&mut reader)?);
+        txdata.push(deserialize_pepe_tx(&mut reader, network)?);
     }
     Ok(Block { header, txdata })
 }
 
 pub fn deserialize_pepe_tx<R: bitcoin::io::Read + ?Sized>(
     reader: &mut R,
+    network: Network,
 ) -> Result<Transaction, bitcoin::consensus::encode::Error> {
     use bitcoin::consensus::encode::Decodable;
+
+    if network != Network::Bitcoin {
+        return Transaction::consensus_decode(reader);
+    }
+
     let version = bitcoin::transaction::Version::consensus_decode(reader)?;
     let input = Vec::<bitcoin::TxIn>::consensus_decode(reader)?;
     let output = Vec::<bitcoin::TxOut>::consensus_decode(reader)?;

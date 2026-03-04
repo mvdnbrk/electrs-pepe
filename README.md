@@ -31,7 +31,7 @@ but instead queried from pepecoind on demand.
 
 ### Notable changes from Electrs:
 
-- Ported to Pepecoin (Magic bytes: `0xe4b8b8a4`, Genesis Hash: `6926978583488737b9875e53381a806955dfa503893603417643b2f671c8907f`).
+- Ported to Pepecoin (Magic bytes: `0xe4b8b8a4`, Genesis Hash: `37981c0c48b8d48965376c8a42ece9a0838daadb93ff975cb091f57f8c2a5faa`).
 - Support for Pepecoin address prefixes (starting with `P`, Base58 prefix 56).
 - HTTP REST API in addition to the Electrum JSON-RPC protocol, with extended transaction information.
 

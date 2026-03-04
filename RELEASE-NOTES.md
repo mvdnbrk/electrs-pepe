@@ -1,6 +1,6 @@
 # 0.4.1-pepe (12 Feb 2026)
 
-* Ported to Pepecoin (Magic bytes: `0xe4b8b8a4`, Genesis Hash: `6926978583488737b9875e53381a806955dfa503893603417643b2f671c8907f`)
+* Ported to Pepecoin (Magic bytes: `0xe4b8b8a4`, Genesis Hash: `37981c0c48b8d48965376c8a42ece9a0838daadb93ff975cb091f57f8c2a5faa`)
 * Added support for AuxPoW block headers and blocks using partial deserialization
 * Updated default ports for Pepecoin (RPC: 33873, Electrum: 50002, REST: 3002)
 * Updated default directory to `~/.pepecoin`
